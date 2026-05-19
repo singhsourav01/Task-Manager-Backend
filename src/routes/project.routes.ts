@@ -16,13 +16,13 @@ router.post(
 );
 
 router.put(
-  "project/:id",
+  "/project/:id",
   AuthMiddleware.authorize("ADMIN", "MANAGER"),
   ProjectController.updateProject,
 );
 
 router.delete(
-  "project/:id",
+  "/project/:id",
   AuthMiddleware.authorize("ADMIN"),
   ProjectController.deleteProject,
 );

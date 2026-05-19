@@ -22,13 +22,13 @@ router.put(
 );
 
 router.delete(
-  "/:id",
+  "/task/:id",
   AuthMiddleware.authorize("ADMIN", "MANAGER"),
   TaskController.deleteTask,
 );
 
 router.post(
-  "task/assign",
+  "/task/assign",
   AuthMiddleware.authorize("ADMIN", "MANAGER"),
   TaskController.assignUserToTask,
 );

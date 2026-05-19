@@ -4,11 +4,11 @@ import { config } from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { API_ENDPOINTS, API_ERRORS, PORT } from "./constants/app.constants";
-import AdminRoutes from "./routes/project.route";
 import AuthRoutes from "./routes/auth.routes";
 import UserRoutes from "./routes/user.route";
 import ProjectRouters from "./routes/project.routes";
 import TrackRouters from "./routes/task.route";
+import CommentRoutes from "./routes/comment.routes";
 
 config();
 
@@ -30,11 +30,12 @@ app.use(
   },
 );
 
-app.use(API_ENDPOINTS.BASE, UserRoutes);
+// Public auth routes must be registered before routers that use global authenticate
 app.use(API_ENDPOINTS.BASE, AuthRoutes);
-app.use(API_ENDPOINTS.BASE, AdminRoutes);
+app.use(API_ENDPOINTS.BASE, UserRoutes);
 app.use(API_ENDPOINTS.BASE, ProjectRouters);
 app.use(API_ENDPOINTS.BASE, TrackRouters);
+app.use(API_ENDPOINTS.BASE, CommentRoutes);
 
 app.use(API_ENDPOINTS.STAR, (req: Request, res: Response) => {
   throw new ApiError(StatusCodes.NOT_FOUND, API_ERRORS.ROUTE_NOT_FOUND);
