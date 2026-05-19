@@ -1,18 +1,50 @@
-import express from "express";
-import { body } from "express-validator";
-import { API_ENDPOINTS } from "../constants/app.constants";
-import UserController from "../controller/user.controller";
+// src/routes/userRoutes.ts
+import { Router } from "express";
+import UserController from "../controller/userController";
+import { AuthMiddleware } from "../middleware/authMiddleware";
 
-const UserRoutes = express.Router();
-const userController = new UserController();
+const router = Router();
 
-UserRoutes.route(API_ENDPOINTS.SIGNUP).post(
-  body("email").isEmail().withMessage("Invalid email"),
-  body("password")
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters"),
-  body("name").optional().isString(),
-  userController.signup
+// All routes require authentication
+router.use(AuthMiddleware.authenticate);
+
+// Admin only routes
+router.get(
+  "/users",
+  // AuthMiddleware.authorize("ADMIN"),
+  UserController.getAllUsers,
 );
 
-export default UserRoutes;
+router.post(
+  "/user",
+  // AuthMiddleware.authorize("ADMIN"),
+  UserController.createUser,
+);
+router.put(
+  "/user/:id/role",
+  // AuthMiddleware.authorize("ADMIN"),
+  UserController.updateUserRole,
+);
+router.put(
+  "/user/:id/status",
+  // AuthMiddleware.authorize("ADMIN"),
+  UserController.toggleUserStatus,
+);
+router.put(
+  "/user/:id/reset-password",
+  // AuthMiddleware.authorize("ADMIN"),
+  UserController.resetPassword,
+);
+router.delete(
+  "/user/:id",
+  // AuthMiddleware.authorize("ADMIN"),
+  UserController.deleteUser,
+);
+
+// Any authenticated user routes
+router.get("/profile", UserController.getProfile);
+router.put("/profile", UserController.updateProfile);
+router.put("/change-password", UserController.changePassword);
+router.get("/user/:id", UserController.getUserById);
+
+export default router;

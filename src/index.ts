@@ -3,15 +3,12 @@ import cors from "cors";
 import { config } from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import {
-  API_ENDPOINTS,
-  API_ERRORS,
-  PORT,
-} from "./constants/app.constants";
-import AdminRoutes from "./routes/admin.routes";
+import { API_ENDPOINTS, API_ERRORS, PORT } from "./constants/app.constants";
+import AdminRoutes from "./routes/project.route";
 import AuthRoutes from "./routes/auth.routes";
-import OtpRoutes from "./routes/otp.routes";
-import UserRoutes from "./routes/user.routes";
+import UserRoutes from "./routes/user.route";
+import ProjectRouters from "./routes/project.routes";
+import TrackRouters from "./routes/task.route";
 
 config();
 
@@ -30,13 +27,14 @@ app.use(
       throw new ApiError(StatusCodes.BAD_REQUEST, API_ERRORS.SEND_PROPER_JSON);
     }
     return next();
-  }
+  },
 );
 
 app.use(API_ENDPOINTS.BASE, UserRoutes);
-app.use(API_ENDPOINTS.BASE, OtpRoutes);
 app.use(API_ENDPOINTS.BASE, AuthRoutes);
 app.use(API_ENDPOINTS.BASE, AdminRoutes);
+app.use(API_ENDPOINTS.BASE, ProjectRouters);
+app.use(API_ENDPOINTS.BASE, TrackRouters);
 
 app.use(API_ENDPOINTS.STAR, (req: Request, res: Response) => {
   throw new ApiError(StatusCodes.NOT_FOUND, API_ERRORS.ROUTE_NOT_FOUND);
