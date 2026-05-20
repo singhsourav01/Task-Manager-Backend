@@ -25,6 +25,7 @@ class TaskService {
     endDate: Date;
     assignedTo?: string;
   }) {
+    console.log("Creating task with data:", data);
     // Check if project exists
     const project = await this.projectRepository.getProjectById(data.projectId);
     if (!project) {

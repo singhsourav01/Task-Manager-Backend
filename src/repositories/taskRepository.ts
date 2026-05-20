@@ -45,6 +45,7 @@ interface PaginationParams {
 class TaskRepository {
   // Create task
   async createTask(data: CreateTaskData) {
+    console.log("Creating task with data:", data);
     return await prisma.projectTask.create({
       data: {
         projectId: data.projectId,

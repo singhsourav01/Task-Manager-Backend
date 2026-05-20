@@ -14,6 +14,10 @@ class UserService {
     return await this.userRepository.getAllUsers(page, limit);
   }
 
+  async getAllActiveUsers(page: number, limit: number) {
+    return await this.userRepository.getAllActiveUsers(page, limit);
+  }
+
   // Get user by ID
   async getUserById(id: string) {
     const user = await this.userRepository.getSafeUserById(id);

@@ -123,6 +123,62 @@ class UserRepository {
     };
   }
 
+  async getAllActiveUsers(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    data: SafeUser[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        where: { isActive: true },
+        skip,
+        take: limit,
+
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+
+      prisma.user.count(),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: users,
+
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    };
+  }
+
   // Get safe user by ID (without sensitive fields)
   async getSafeUserById(id: string): Promise<SafeUser | null> {
     return await prisma.user.findUnique({

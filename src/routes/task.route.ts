@@ -11,7 +11,7 @@ router.use(AuthMiddleware.authenticate);
 // Manager/Admin routes
 router.post(
   "/task",
-  AuthMiddleware.authorize("ADMIN", "MANAGER", "DEVELOPER"),
+  AuthMiddleware.authorize("ADMIN", "MANAGER"),
   TaskController.createTask,
 );
 

@@ -13,6 +13,12 @@ router.get(
   AuthMiddleware.authorize("ADMIN"),
   UserController.getAllUsers,
 );
+router.get(
+  "/active-users",
+  auth,
+  AuthMiddleware.authorize("ADMIN"),
+  UserController.getAllActiveUsers,
+);
 
 router.post(
   "/user",
@@ -32,16 +38,8 @@ router.put(
   AuthMiddleware.authorize("ADMIN"),
   UserController.toggleUserStatus,
 );
-router.put(
-  "/user/:id/reset-password",
-  auth,
-  UserController.resetPassword,
-);
-router.delete(
-  "/user/:id",
-  auth,
-  UserController.deleteUser,
-);
+router.put("/user/:id/reset-password", auth, UserController.resetPassword);
+router.delete("/user/:id", auth, UserController.deleteUser);
 
 // Any authenticated user routes
 router.get("/profile", auth, UserController.getProfile);

@@ -26,6 +26,26 @@ class UserController {
     }
   }
 
+  static async getAllActiveUsers(req: Request, res: Response) {
+    try {
+      const page = Math.max(1, Number(req.query.page) || 1);
+
+      const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+
+      const result = await userService.getAllActiveUsers(page, limit);
+
+      return res.status(200).json({
+        success: true,
+        ...result,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   // Get user by ID
   static async getUserById(req: Request, res: Response) {
     try {
