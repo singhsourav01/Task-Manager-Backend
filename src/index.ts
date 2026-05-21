@@ -3,18 +3,17 @@ import cors from "cors";
 import { config } from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { API_ENDPOINTS, API_ERRORS, PORT } from "./constants/app.constants";
-import AuthRoutes from "./routes/auth.routes";
-import UserRoutes from "./routes/user.route";
-import ProjectRouters from "./routes/project.routes";
-import TrackRouters from "./routes/task.route";
-import CommentRoutes from "./routes/comment.routes";
+// Add this to your existing index.ts
+import CmsRoutes from "./routes/cms.routes";
+import SchoolRoutes from "./routes/school.routes";
+
+// Add after other route registrations
 
 config();
 
 const app = express();
-const port = parseInt(process.env.PORT || "") || PORT;
-app.use(API_ENDPOINTS.BASE, express.static("public"));
+const port = parseInt(process.env.PORT || "") || 3000;
+app.use(express.static("public"));
 
 app.use(cors());
 app.use(express.json());
@@ -24,22 +23,15 @@ app.use(
   express.json(),
   (err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, API_ERRORS.SEND_PROPER_JSON);
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Please send proper JSON");
     }
     return next();
   },
 );
 
 // Public auth routes must be registered before routers that use global authenticate
-app.use(API_ENDPOINTS.BASE, AuthRoutes);
-app.use(API_ENDPOINTS.BASE, UserRoutes);
-app.use(API_ENDPOINTS.BASE, ProjectRouters);
-app.use(API_ENDPOINTS.BASE, TrackRouters);
-app.use(API_ENDPOINTS.BASE, CommentRoutes);
-
-app.use(API_ENDPOINTS.STAR, (req: Request, res: Response) => {
-  throw new ApiError(StatusCodes.NOT_FOUND, API_ERRORS.ROUTE_NOT_FOUND);
-});
+app.use("/test", CmsRoutes);
+app.use("/test", SchoolRoutes);
 
 app.use((err: ApiError, req: Request, res: Response, next: NextFunction) => {
   console.log(err);

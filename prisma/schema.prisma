@@ -12,131 +12,83 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
-enum Role {
-  ADMIN
-  MANAGER
-  DEVELOPER
+enum PageSection {
+  MAIN
+  SCHOOL
 }
 
-enum ProjectStatus {
-  PLANNED
-  ACTIVE
-  COMPLETED
-  ON_HOLD
+enum PageType {
+  TOP
+  NONE
 }
 
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  REVIEW
-  COMPLETED
+enum ContentType {
+  CONTENT_PAGE
+  URL
 }
 
-enum Priority {
-  LOW
-  MEDIUM
-  HIGH
+enum TargetType {
+  SELF
+  NEW
 }
 
-model User {
-  id            String        @id @default(uuid())
-  email         String        @unique
-  name          String
-  password      String
-  role          Role          @default(DEVELOPER)
-  isActive      Boolean       @default(true) @map("is_active")
-  accessToken   String?       @map("access_token") @db.Text
-  refreshToken  String?       @map("refresh_token") @db.Text
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+enum PageCategory {
+  HOME
+  ABOUT_US
+  ACADEMICS
+  RESEARCH
+  ADMISSION
+  NORMAL
+}
+
+model School {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?   @db.Text
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   
-  createdProjects   Project[]       @relation("ProjectCreator")
-  projectMembers    ProjectMember[]
-  taskAssignments   TaskUser[]
-  comments          Comment[]
-  tasks             ProjectTask[]   @relation("TaskAssignee")
-
-  @@map("users")
+  pages       CmsPage[]
+  
+  @@map("schools")
 }
 
-model Project {
-  id              String        @id @default(uuid())
-  name            String        @map("project_name")
-  description     String?       @db.Text
-  status          ProjectStatus @default(PLANNED)
-  startDate       DateTime      @map("start_date")
-  endDate         DateTime      @map("end_date")
-  createdUserId   String        @map("created_user_id")
-  createdAt       DateTime      @default(now()) @map("created_at")
-  updatedAt       DateTime      @updatedAt @map("updated_at")
+model CmsPage {
+  id              String      @id @default(uuid())
+  pageName        String      @map("page_name")
+  slug            String      @unique
+  section         PageSection @default(MAIN)
+  parentId        String?     @map("parent_id")
+  subParentId     String?     @map("sub_parent_id")
+  pageOrder       Int         @default(0) @map("page_order")
+  pageType        PageType    @default(NONE) @map("page_type")
+  contentType     ContentType @default(CONTENT_PAGE) @map("content_type")
+  externalUrl     String?     @map("external_url") @db.Text
+  pageTitle       String      @map("page_title")
+  metaDescription String?     @map("meta_description") @db.Text
+  metaKeywords    String?     @map("meta_keywords") @db.Text
+  isPublished     Boolean     @default(false) @map("is_published")
+  target          TargetType  @default(SELF)
+  schoolId        String?     @map("school_id")
+  category        PageCategory @default(NORMAL)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
 
-  createdBy       User              @relation("ProjectCreator", fields: [createdUserId], references: [id])
-  members         ProjectMember[]
-  tasks           ProjectTask[]
+  // Self-referential relations for hierarchy
+  parent          CmsPage?    @relation("PageHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children        CmsPage[]   @relation("PageHierarchy")
+  
+  // School relation
+  school          School?     @relation(fields: [schoolId], references: [id], onDelete: SetNull)
 
-  @@map("projects")
-}
-
-model ProjectMember {
-  id        String   @id @default(uuid())
-  projectId String   @map("project_id")
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, userId])
-  @@map("project_members")
-}
-
-model ProjectTask {
-  id          String      @id @default(uuid())
-  projectId   String      @map("project_id")
-  name        String      @map("task_name")
-  description String?     @map("task_desc") @db.Text
-  status      TaskStatus  @default(TODO)
-  priority    Priority    @default(MEDIUM)
-  startDate   DateTime    @map("start_date")
-  endDate     DateTime    @map("end_date")
-  assignedTo  String?     @map("assigned_to")
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-
-  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee    User?         @relation("TaskAssignee", fields: [assignedTo], references: [id])
-  assignees   TaskUser[]
-  comments    Comment[]
-
-  @@map("project_tasks")
-}
-
-model TaskUser {
-  id        String   @id @default(uuid())
-  taskId    String   @map("task_id")
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  task      ProjectTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([taskId, userId])
-  @@map("task_users")
-}
-
-model Comment {
-  id          String   @id @default(uuid())
-  taskId      String   @map("task_id")
-  userId      String   @map("user_id")
-  description String   @map("comment_desc") @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  task        ProjectTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("comments")
+  @@index([slug])
+  @@index([parentId])
+  @@index([section])
+  @@index([schoolId])
+  @@index([isPublished])
+  @@index([pageOrder])
+  @@index([category])
+  @@map("cms_pages")
 }
